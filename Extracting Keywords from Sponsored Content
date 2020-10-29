@@ -1,0 +1,105 @@
+!pip install newspaper3k
+
+!pip install python-rake
+
+import time
+import newspaper
+import requests
+import RAKE
+import urllib.request
+
+rake = RAKE.Rake(RAKE.SmartStopList())
+
+def get_file_contents_as_list(filename):
+    """Given the path filename, open the file and return its lines as a list.
+    Be sure to strip the newline characters from the lines.
+
+    **Important:** Do not leave a dangling open file handle. That is to say,
+    be sure to explicitly close your file.
+    """
+    result = []
+    textDoc = open(filename, "r")
+    for line in textDoc:
+      stripped = line.strip()
+      result.append(stripped)
+    textDoc.close()
+    return result
+
+
+
+def fetch_html(url):
+    """Fetch and return the html content of the remote page at url."""
+    try:
+      z = requests.get(url)
+      result = z.text
+      return result
+    except:
+      return ''
+
+
+
+def extract_text(html):
+    """Extract the text from the given html page using Newspaper's fulltext
+    method.
+
+    Returns the text extracted from the page. Returns an empty string if unable
+    to extract the text.
+    """
+    try:
+      result = newspaper.fulltext(html)
+      return result
+    except:
+      return ''
+      
+      
+def extract_keywords(text):
+    """Extract the keywords from text using RAKE. Use RAKE's internal
+    SmartStopList as the stop list for your keyword extractor.
+
+    Returns a list of (keyword, score) pairs. Returns an empty list if there
+    are no keywords extracted.
+    """
+    #result = []
+    #for i in text:
+     # i = str(i)
+     # rake = RAKE.rake(i)
+     # result.append(rake.run())
+   # return result
+
+    res = rake.run(text)
+    
+    
+    
+import time
+
+urls = get_file_contents_as_list(IN_FILE)
+for url in urls:
+    keywords = extract_keywords(extract_text(fetch_html(url)))
+    keywords
+    print(top_keywords(keywords))
+    time.sleep(1)# We are fetching all of the URLs from a single source --
+                  # the internet archive -- so we want to go easy and not
+                  # hit them too fast.
+
+    return res
+
+def top_keywords(rake_keywords, n=3):
+    """Given a RAKE keywords list of tuples in the form of:
+
+        (keyword, score)
+
+    return the top n keywords.
+
+    rake_keywords is assumed to be in descending order by score, since that is
+    how we get it from RAKE. Thus, simply return the first n terms extracted
+    from their tuples.
+
+    Returns: a list of strings. Returns an empty string if rake_keywords is empty.
+    """
+
+    if rake_keywords == []:
+      return []
+    else:
+      topKWSitems = rake_keywords[:n]
+      topKWs = [kw[0] for kw in topKWSitems]
+      return topKWs
