@@ -70,6 +70,7 @@ def summarize_texts(texts):
     
 ----------------------------------------------
 
+
 docs = [
     "Play something by Billie Holiday",
     "Set a timer for five minutes",
