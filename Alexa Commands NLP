@@ -1,0 +1,92 @@
+def preprocess(text):
+    """Preprocess a line of text. Applies truecase (https://github.com/daltonfury42/truecase)
+    capitalization to the text and returns a Spacy NLP object of the processed text.
+
+    parameters:
+      text. A String
+
+    returns:
+      A spaCy Doc object (spacy.tokens.doc.Doc). https://spacy.io/
+    """
+    case = truecase.get_true_case(text)
+    doc = nlp(case)
+    return doc
+ 
+----------------------------------------------
+    
+def summarize_texts(texts):
+    """From an iterable of texts, extract the named entities and action words.
+
+    Calls `preprocess` to convert text to NLP objects.
+    Uses SpaCy's named entity recognition to determine named entities and
+    SpaCy's part-of-speech to find verbs.
+
+    Action words should be normalized by setting them to lowercase. Entities
+    should retain their original title case.
+
+    Returns a dictionary of entities (organized by entity type -- ie. `label_`)
+    and actions along with their counts.
+
+    E.g.: for the following documents:
+    [ "Play something by Billie Holiday",
+      "Set a timer for five minutes",
+      "Play it again, Sam"
+    ]
+
+    Return the following data structure:
+    {
+        'entities': {
+            'PERSON': ['Billie', 'Sam'],
+            'TIME': ['five minutes']
+        },
+        'actions': {
+            'play': 2,
+            'set': 1 
+        }
+    }
+    d = {}
+  for label, item in whatever_mydata_is:
+    if not label in d:
+        d[label] = []
+    d[label].append(item)
+    """
+    if type(texts) is str: texts = [texts]
+    result = []
+    for text in texts:
+        doc = preprocess(text) 
+        actions = {}
+        entities = {}
+        for token in doc:
+            if token.pos_ == "VERB":
+                actions[token.lemma_] = actions.get(token.text, 0) +1
+        for token in doc.ents:
+            entities[token.label_] =  [token.text]
+        result.append({
+            'actions': actions,
+            'entities': entities
+        })
+    return result
+    
+----------------------------------------------
+
+docs = [
+    "Play something by Billie Holiday",
+    "Set a timer for five minutes",
+    "Play it again, Sam",
+    "Stop playing"
+]
+summarize_texts(docs)
+
+----------------------------------------------
+
+verb_counts = []
+for verb, count in summary['actions'].items():
+    verb_counts.append( (count, verb) )
+    verb_counts = sorted(verb_counts, reverse=True)
+for verb, count in verb_counts[:10]:
+    print(verb, count)
+    
+ ----------------------------------------------
+ 
+for etype, entities in summary['entities'].items():
+    print(etype, set(entities))
